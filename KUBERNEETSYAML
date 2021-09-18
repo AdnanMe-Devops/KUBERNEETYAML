@@ -1,0 +1,710 @@
+Creating a Job
+Use the following command to create a job −
+
+apiVersion: v1
+kind: Job ------------------------> 1
+metadata:
+   name: py
+   spec:
+   template:
+      metadata
+      name: py -------> 2
+      spec:
+         containers:
+            - name: py ------------------------> 3
+            image: python----------> 4
+            command: ["python", "SUCCESS"]
+            restartPocliy: Never --------> 5
+In the above code, we have defined −
+
+kind: Job → We have defined the kind as Job which will tell kubectl that the yaml file being 
+
+used is to create a job type pod.
+
+Name:py → This is the name of the template that we are using and the spec defines the template.
+
+name: py → we have given a name as py under container spec which helps to identify the Pod 
+
+which is going to be created out of it.
+
+Image: python → the image which we are going to pull to create the container which will run 
+
+inside the pod.
+
+restartPolicy: Never →This condition of image restart is given as never which means that if the 
+
+container is killed or if it is false, then it will not restart itself.
+
+We will create the job using the following command with yaml which is saved with the name 
+
+py.yaml.
+
+ kubectl create –f py.yaml
+The above command will create a job. If you want to check the status of a job, use the 
+
+following command.
+
+$ kubectl describe jobs/py
+
+--------------------------------
+apiVersion: v1
+kind: Job
+metadata:
+   name: py
+spec:
+   schedule: h/30 * * * * ? -------------------> 1
+   template:
+      metadata
+         name: py
+      spec:
+         containers:
+         - name: py
+         image: python
+         args:
+/bin/sh -------> 2
+-c
+ps –eaf ------------> 3
+restartPocliy: OnFailure
+In the above code, we have defined −
+
+schedule: h/30 * * * * ? → To schedule the job to run in every 30 minutes.
+
+/bin/sh: This will enter in the container with /bin/sh
+
+ps –eaf → Will run ps -eaf command on the machine and list all the running process inside a 
+
+container.
+
+This scheduled job concept is useful when we are trying to build and run a set of tasks at a 
+
+specified point of time and then complete the process.
+
+-------------------------------
+$ kubectl create –f namespace.yml ---------> 1
+$ kubectl get namespace -----------------> 2
+$ kubectl get namespace <Namespace name> ------->3
+$ kubectl describe namespace <Namespace name> ---->4
+$ kubectl delete namespace <Namespace name>
+---------------------------
+
+piVersion: v1
+kind: Service
+metadata:
+   name: elasticsearch
+   namespace: elk
+   labels:
+      component: elasticsearch
+spec:
+   type: LoadBalancer
+   selector:
+      component: elasticsearch
+   ports:
+   - name: http
+      port: 9200
+      protocol: TCP
+   - name: transport
+      port: 9300
+      protocol: TCP
+--------------------------------
+
+Service with Selector
+apiVersion: v1
+kind: node
+metadata:
+   name: < ip address of the node>
+   labels:
+      name: <lable name>
+------------------------------
+Service without Selector
+apiVersion: v1
+kind: Service
+metadata:
+   name: Tutorial_point_service
+spec:
+   ports:
+   - port: 8080
+   targetPort: 31999
+-----------------------------
+piVersion: v1
+kind: Service
+metadata:
+   name: Tutorial_point_service
+spec:
+   selector:
+      application: "My Application" -------------------> (Selector)
+   ports:
+   - port: 8080
+   targetPort: 31999
+-------------------------
+we have a selector; so in order to transfer traffic, we need to create an endpoint manually.
+
+apiVersion: v1
+kind: Endpoints
+metadata:
+   name: Tutorial_point_service
+subnets:
+   address:
+      "ip": "192.168.168.40" -------------------> (Selector)
+   ports:
+      - port: 8080
+In the above code, we have created an endpoint which will route the traffic to the endpoint 
+
+defined as “192.168.168.40:8080”.
+-----------------------------
+Multi-Port Service Creation
+apiVersion: v1
+kind: Service
+metadata:
+   name: Tutorial_point_service
+spec:
+   selector:
+      application: “My Application” -------------------> (Selector)
+   ClusterIP: 10.3.0.12
+   ports:
+      -name: http
+      protocol: TCP
+      port: 80
+      targetPort: 31999
+   -name:https
+      Protocol: TCP
+      Port: 443
+      targetPort: 31998
+-----------------------------
+NodePort − It will expose the service on a static port on the deployed node. A ClusterIP 
+
+service, to which NodePort service will route, is automatically created. The service can be 
+
+accessed from outside the cluster using the NodeIP:nodePort.
+
+spec:
+   ports:
+   - port: 8080
+      nodePort: 31999
+      name: NodeportService
+      clusterIP: 10.20.30.40
+Load Balancer − It uses cloud providers’ load balancer. NodePort and ClusterIP services are 
+
+created automatically to which the external load balancer will route.
+
+A full service yaml file with service type as Node Port. Try to create one yourself.
+
+apiVersion: v1
+kind: Service
+metadata:
+   name: appname
+   labels:
+      k8s-app: appname
+spec:
+   type: NodePort
+   ports:
+   - port: 8080
+      nodePort: 31999
+      name: omninginx
+   selector:
+      k8s-app: appname
+      component: nginx
+      env: env_name
+--------------------------
+e will create a pod with a tomcat image which is available on the Docker hub.
+
+$ kubectl run tomcat --image = tomcat:8.0
+
+apiVersion: v1
+kind: Pod
+metadata:
+   name: Tomcat
+spec:
+   containers:
+   - name: Tomcat
+    image: tomcat: 8.0
+    ports:
+containerPort: 7500
+   imagePullPolicy: Always
+Once the above yaml file is created, we will save the file with the name of tomcat.yml and run 
+
+the create command to run the document.
+
+$ kubectl create –f tomcat.yml
+
+------------------
+Multi Container Pod
+Multi container pods are created using yaml mail with the definition of the containers.
+
+apiVersion: v1
+kind: Pod
+metadata:
+   name: Tomcat
+spec:
+   containers:
+   - name: Tomcat
+    image: tomcat: 8.0
+    ports:
+containerPort: 7500
+   imagePullPolicy: Always
+   -name: Database
+   Image: mongoDB
+   Ports:
+containerPort: 7501
+   imagePullPolicy: Always
+------------------------------------
+Kubernetes - Replication Controller
+Replication Controller is one of the key features of Kubernetes, which is responsible for 
+
+managing the pod lifecycle. It is responsible for making sure that the specified number of pod 
+
+replicas are running at any point of time. It is used in time when one wants to make sure that 
+
+the specified number of pod or at least one pod is running. It has the capability to bring up 
+
+or down the specified no of pod.
+
+It is a best practice to use the replication controller to manage the pod life cycle rather 
+
+than creating a pod again and again.
+
+apiVersion: v1
+kind: ReplicationController --------------------------> 1
+metadata:
+   name: Tomcat-ReplicationController --------------------------> 2
+spec:
+   replicas: 3 ------------------------> 3
+   template:
+      metadata:
+         name: Tomcat-ReplicationController
+      labels:
+         app: App
+         component: neo4j
+      spec:
+         containers:
+         - name: Tomcat- -----------------------> 4
+         image: tomcat: 8.0
+         ports:
+            - containerPort: 7474 ------------------------> 5
+Setup Details
+Kind: ReplicationController → In the above code, we have defined the kind as replication 
+
+controller which tells the kubectl that the yaml file is going to be used for creating the 
+
+replication controller.
+
+name: Tomcat-ReplicationController → This helps in identifying the name with which the 
+
+replication controller will be created. If we run the kubctl, get rc < Tomcat-
+
+ReplicationController > it will show the replication controller details.
+
+replicas: 3 → This helps the replication controller to understand that it needs to maintain 
+
+three replicas of a pod at any point of time in the pod lifecycle.
+
+name: Tomcat → In the spec section, we have defined the name as tomcat which will tell the 
+
+replication controller that the container present inside the pods is tomcat.
+
+containerPort: 7474 → It helps in making sure that all the nodes in the cluster where the pod 
+
+is running the container inside the pod will be exposed on the same port 7474.
+
+Kubernetes - Replica Sets
+Replica Set ensures how many replica of pod should be running. It can be considered as a 
+
+replacement of replication controller. The key difference between the replica set and the 
+
+replication controller is, the replication controller only supports equality-based selector 
+
+whereas the replica set supports set-based selector.
+
+apiVersion: extensions/v1beta1 --------------------->1
+kind: ReplicaSet --------------------------> 2
+metadata:
+   name: Tomcat-ReplicaSet
+spec:
+   replicas: 3
+   selector:
+      matchLables:
+         tier: Backend ------------------> 3
+      matchExpression:
+{ key: tier, operation: In, values: [Backend]} --------------> 4
+template:
+   metadata:
+      lables:
+         app: Tomcat-ReplicaSet
+         tier: Backend
+      labels:
+         app: App
+         component: neo4j
+   spec:
+      containers:
+      - name: Tomcat
+      image: tomcat: 8.0
+      ports:
+      - containerPort: 7474
+Setup Details
+apiVersion: extensions/v1beta1 → In the above code, the API version is the advanced beta 
+
+version of Kubernetes which supports the concept of replica set.
+
+kind: ReplicaSet → We have defined the kind as the replica set which helps kubectl to 
+
+understand that the file is used to create a replica set.
+
+tier: Backend → We have defined the label tier as backend which creates a matching selector.
+
+{key: tier, operation: In, values: [Backend]} → This will help matchExpression to understand 
+
+the matching condition we have defined and in the operation which is used by matchlabel to find 
+
+details.
+
+Run the above file using kubectl and create the backend replica set with the provided 
+
+definition in the yaml file.
+
+------------------------------------
+
+apiVersion: extensions/v1beta1 --------------------->1
+kind: ReplicaSet --------------------------> 2
+metadata:
+   name: Tomcat-ReplicaSet
+spec:
+   replicas: 3
+   selector:
+      matchLables:
+         tier: Backend ------------------> 3
+      matchExpression:
+{ key: tier, operation: In, values: [Backend]} --------------> 4
+template:
+   metadata:
+      lables:
+         app: Tomcat-ReplicaSet
+         tier: Backend
+      labels:
+         app: App
+         component: neo4j
+   spec:
+      containers:
+      - name: Tomcat
+      image: tomcat: 8.0
+      ports:
+      - containerPort: 7474
+
+
+Setup Details
+apiVersion: extensions/v1beta1 → In the above code, the API version is the advanced beta 
+
+version of Kubernetes which supports the concept of replica set.
+
+kind: ReplicaSet → We have defined the kind as the replica set which helps kubectl to 
+
+understand that the file is used to create a replica set.
+
+tier: Backend → We have defined the label tier as backend which creates a matching selector.
+
+{key: tier, operation: In, values: [Backend]} → This will help matchExpression to understand 
+
+the matching condition we have defined and in the operation which is used by matchlabel to find 
+
+details
+
+apiVersion: extensions/v1beta1 --------------------->1
+kind: Deployment --------------------------> 2
+metadata:
+   name: Tomcat-ReplicaSet
+spec:
+   replicas: 3
+   template:
+      metadata:
+         lables:
+            app: Tomcat-ReplicaSet
+            tier: Backend
+   spec:
+      containers:
+         - name: Tomcatimage:
+            tomcat: 8.0
+            ports:
+               - containerPort: 7474
+In the above code, the only thing which is different from the replica set is we have defined 
+
+the kind as deployment.
+
+
+Create Deployment
+$ kubectl create –f Deployment.yaml -–record
+deployment "Deployment" created Successfully.
+Fetch the Deployment
+$ kubectl get deployments
+NAME           DESIRED     CURRENT     UP-TO-DATE     AVILABLE    AGE
+Deployment        3           3           3              3        20s
+
+Check the Status of Deployment
+$ kubectl rollout status deployment/Deployment
+Updating the Deployment
+$ kubectl set image deployment/Deployment tomcat=tomcat:6.0
+Rolling Back to Previous Deployment
+$ kubectl rollout undo deployment/Deployment –to-revision=2
+
+Persistent Volume and Persistent Volume Claim
+Persistent Volume (PV) − It’s a piece of network storage that has been provisioned by the 
+
+administrator. It’s a resource in the cluster which is independent of any individual pod that 
+
+uses the PV.
+
+Persistent Volume Claim (PVC) − The storage requested by Kubernetes for its pods is known as 
+
+PVC. The user does not need to know the underlying provisioning. The claims must be created in 
+
+the same namespace where the pod is created.
+
+Creating Persistent Volume
+kind: PersistentVolume ---------> 1
+apiVersion: v1
+metadata:
+   name: pv0001 ------------------> 2
+   labels:
+      type: local
+spec:
+   capacity: -----------------------> 3
+      storage: 10Gi ----------------------> 4
+   accessModes:
+      - ReadWriteOnce -------------------> 5
+      hostPath:
+         path: "/tmp/data01" --------------------------> 6
+In the above code, we have defined −
+
+kind: PersistentVolume → We have defined the kind as PersistentVolume which tells kubernetes 
+
+that the yaml file being used is to create the Persistent Volume.
+
+name: pv0001 → Name of PersistentVolume that we are creating.
+
+capacity: → This spec will define the capacity of PV that we are trying to create.
+
+storage: 10Gi → This tells the underlying infrastructure that we are trying to claim 10Gi space 
+
+on the defined path.
+
+ReadWriteOnce → This tells the access rights of the volume that we are creating.
+
+path: "/tmp/data01" → This definition tells the machine that we are trying to create volume 
+
+under this path on the underlying infrastructure.
+
+Creating PV
+$ kubectl create –f local-01.yaml
+persistentvolume "pv0001" created
+Checking PV
+$ kubectl get pv
+NAME        CAPACITY      ACCESSMODES       STATUS       CLAIM      REASON     AGE
+pv0001        10Gi            RWO         Available                            14s
+Describing PV
+$ kubectl describe pv pv0001
+Creating Persistent Volume Claim
+kind: PersistentVolumeClaim --------------> 1
+apiVersion: v1
+metadata:
+   name: myclaim-1 --------------------> 2
+spec:
+   accessModes:
+      - ReadWriteOnce ------------------------> 3
+   resources:
+      requests:
+         storage: 3Gi ---------------------> 4
+In the above code, we have defined −
+
+kind: PersistentVolumeClaim → It instructs the underlying infrastructure that we are trying to 
+
+claim a specified amount of space.
+
+name: myclaim-1 → Name of the claim that we are trying to create.
+
+ReadWriteOnce → This specifies the mode of the claim that we are trying to create.
+
+storage: 3Gi → This will tell kubernetes about the amount of space we are trying to claim.
+
+Creating PVC
+$ kubectl create –f myclaim-1
+persistentvolumeclaim "myclaim-1" created
+Getting Details About PVC
+$ kubectl get pvc
+NAME        STATUS   VOLUME   CAPACITY   ACCESSMODES   AGE
+myclaim-1   Bound    pv0001     10Gi         RWO       7s
+Describe PVC
+$ kubectl describe pv pv0001
+
+-------------------------
+
+Using PV and PVC with POD
+kind: Pod
+apiVersion: v1
+metadata:
+   name: mypod
+   labels:
+      name: frontendhttp
+spec:
+   containers:
+   - name: myfrontend
+      image: nginx
+      ports:
+      - containerPort: 80
+         name: "http-server"
+      volumeMounts: ----------------------------> 1
+      - mountPath: "/usr/share/tomcat/html"
+         name: mypd
+   volumes: -----------------------> 2
+      - name: mypd
+         persistentVolumeClaim: ------------------------->3
+         claimName: myclaim-1
+In the above code, we have defined −
+
+volumeMounts: → This is the path in the container on which the mounting will take place.
+
+Volume: → This definition defines the volume definition that we are going to claim.
+
+persistentVolumeClaim: → Under this, we define the volume name which we are going to use in the 
+
+defined pod.
+
+------------------------------
+
+
+Creating the Secret
+$ kubectl create –f Secret.yaml
+
+------------------------------------
+
+kubectl rollout − It is capable of managing the rollout of deployment.
+
+$ Kubectl rollout <Sub Command>
+$ kubectl rollout undo deployment/tomcat
+Apart from the above, we can perform multiple tasks using the rollout such as −
+
+rollout history
+rollout pause
+rollout resume
+rollout status
+rollout undo
+---------
+On creation of the cluster, we can check our cluster using the following kubectl command.
+
+$ kubectl get nodes
+NAME                             STATUS                       AGE
+kubernetes-master                Ready,SchedulingDisabled     10m
+kubernetes-minion-group-de5q     Ready                        10m
+kubernetes-minion-group-yhdx     Ready                        8m
+Now, we can deploy an application on the cluster and then enable the horizontal pod autoscaler. 
+
+This can be done using the following command.
+
+$ kubectl autoscale deployment <Application Name> --cpu-percent = 50 --min = 1 --
+max = 10
+
+Kubernetes - Monitoring
+Monitoring is one of the key component for managing large clusters. For this, we have a number 
+
+of tools.
+
+Monitoring with Prometheus
+It is a monitoring and alerting system. It was built at SoundCloud and was open sourced in 
+
+2012. It handles the multi-dimensional data very well.
+
+Prometheus has multiple components to participate in monitoring −
+
+Prometheus − It is the core component that scraps and stores data.
+
+Prometheus node explore − Gets the host level matrices and exposes them to Prometheus.
+
+Ranch-eye − is an haproxy and exposes cAdvisor stats to Prometheus.
+
+Grafana − Visualization of data.
+
+InfuxDB − Time series database specifically used to store data from rancher.
+
+Prom-ranch-exporter − It is a simple node.js application, which helps in querying Rancher 
+
+server for the status of stack of service.
+
+secrets/tomcat-pass
+Using Secrets
+Once we have created the secrets, it can be consumed in a pod or the replication controller as 
+
+−
+
+Environment Variable
+Volume
+As Environment Variable
+In order to use the secret as environment variable, we will use env under the spec section of 
+
+pod yaml file.
+
+env:
+- name: SECRET_USERNAME
+   valueFrom:
+      secretKeyRef:
+         name: mysecret
+         key: tomcat-pass
+As Volume
+spec:
+   volumes:
+      - name: "secretstest"
+         secret:
+            secretName: tomcat-pass
+   containers:
+      - image: tomcat:7.0
+         name: awebserver
+         volumeMounts:
+            - mountPath: "/tmp/mysec"
+            name: "secretstest"
+Secret Configuration As Environment Variable
+apiVersion: v1
+kind: ReplicationController
+metadata:
+   name: appname
+spec:
+replicas: replica_count
+template:
+   metadata:
+      name: appname
+   spec:
+      nodeSelector:
+         resource-group:
+      containers:
+         - name: appname
+            image:
+            imagePullPolicy: Always
+            ports:
+            - containerPort: 3000
+            env: -----------------------------> 1
+               - name: ENV
+                  valueFrom:
+                     configMapKeyRef:
+                        name: appname
+                        key: tomcat-secrets
+In the above code, under the env definition, we are using secrets as environment variable in 
+
+the replication controller.
+
+Secrets As Volume Mount
+apiVersion: v1
+kind: pod
+metadata:
+   name: appname
+spec:
+   metadata:
+      name: appname
+   spec:
+   volumes:
+      - name: "secretstest"
+         secret:
+            secretName: tomcat-pass
+   containers:
+      - image: tomcat: 8.0
+         name: awebserver
+         volumeMounts:
+            - mountPath: "/tmp/mysec"
+            name: "secretstest"
+
+
+
+
